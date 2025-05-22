@@ -79,12 +79,12 @@ def get_dataloader(images_dir,
                         collate_fn=collate_fn)
     return loader
 
-# Example usage:
-# images_dir = '/path/to/images'
-# annotations_dir = '/path/to/annotations'
-# loader = get_dataloader(images_dir, annotations_dir, batch_size=4)
-# for imgs, targets in loader:
-#     # imgs: list of tensors [3, H, W]
-#     # targets: list of dicts with 'boxes' and 'labels'
-#     pass
+""" # Example usage:
+images_dir = '/path/to/images'
+annotations_dir = '/path/to/annotations'
+loader = get_dataloader(images_dir, annotations_dir, batch_size=4)
+for imgs, targets in loader:
+    imgs: list of tensors [3, H, W]
+    targets: list of dicts with 'boxes' and 'labels'
+    pass"""
 
