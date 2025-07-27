@@ -1,5 +1,3 @@
-# object_detection.py
-
 import os
 import torch
 from torch.utils.data import Dataset, DataLoader
@@ -10,7 +8,7 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 
 class CustomObjectDetectionDataset(Dataset):
     """
-    A custom dataset for object detection. Expects a directory structure:
+    Directory structure:
       D:\PythonProjects\datasets\object_dataset\
         ├── images/
         │     ├── img1.jpg
@@ -80,23 +78,23 @@ def get_dataloader(images_dir, annotations_dir, batch_size=4, shuffle=True, num_
 def get_model(num_classes):
     # Load a model pre-trained on COCO
     model = fasterrcnn_resnet50_fpn(pretrained=True)
-    # Replace the classifier with a new one for our number of classes (including background)
+    # Classifier with a new one for the number of classes (including background)
     in_features = model.roi_heads.box_predictor.cls_score.in_features
     model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
     return model
 
 if __name__ == "__main__":
-    # Paths to your dataset
+    # Dataset Path
     images_dir = r"D:\PythonProjects\datasets\object_dataset\images"
     annotations_dir = r"D:\PythonProjects\datasets\object_dataset\annotations"
 
-    # Create DataLoader
+    # DataLoader
     dataloader = get_dataloader(images_dir, annotations_dir, batch_size=2)
 
-    # Number of object classes (e.g., 1 class + background)
+    # No of object classes
     num_classes = 2
 
-    # Prepare model
+    # model
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model = get_model(num_classes).to(device)
 
