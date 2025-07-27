@@ -8,7 +8,7 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 
 class CustomObjectDetectionDataset(Dataset):
     """
-    Directory structure:
+    Dataset Directory structure:
       D:\PythonProjects\datasets\object_dataset\
         ├── images/
         │     ├── img1.jpg
@@ -76,7 +76,7 @@ def get_dataloader(images_dir, annotations_dir, batch_size=4, shuffle=True, num_
     )
 
 def get_model(num_classes):
-    # Load a model pre-trained on COCO
+    # Loading a model pre-trained on COCO
     model = fasterrcnn_resnet50_fpn(pretrained=True)
     # Classifier with a new one for the number of classes (including background)
     in_features = model.roi_heads.box_predictor.cls_score.in_features
