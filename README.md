@@ -1,90 +1,86 @@
-# Object-Detection-System
-with custom dataset for object detection
+# Object Detection System
 
-import os
-import torch
-from torch.utils.data import Dataset, DataLoader
-from PIL import Image
-import torchvision.transforms as T
+This repository contains a PyTorch-based custom object detection pipeline using Faster R‑CNN. It includes:
 
-class CustomObjectDetectionDataset(Dataset):
-    """
-    A custom dataset for object detection. Expects a directory structure:
-    - images/
-        - img1.jpg
-        - img2.jpg
-        - ...
-    - annotations/
-        - img1.txt  # each line: class_id x_center y_center width height (normalized)
-        - img2.txt
-        - ...
-    """
-    def __init__(self, images_dir, annotations_dir, transforms=None):
-        self.images_dir = images_dir
-        self.annotations_dir = annotations_dir
-        self.image_files = sorted(os.listdir(images_dir))
-        self.transforms = transforms if transforms else T.ToTensor()
+* A `CustomObjectDetectionDataset` for loading images and YOLO-style annotations
+* A collate function and DataLoader wrapper
+* A script to initialize and train a Faster R‑CNN model on your own dataset
 
-    def __len__(self):
-        return len(self.image_files)
+---
 
-    def __getitem__(self, idx):
-        # Load image
-        img_name = self.image_files[idx]
-        img_path = os.path.join(self.images_dir, img_name)
-        image = Image.open(img_path).convert("RGB")
+## 🗂️ Project Structure
 
-        # Load annotations
-        ann_name = os.path.splitext(img_name)[0] + ".txt"
-        ann_path = os.path.join(self.annotations_dir, ann_name)
-        boxes = []
-        labels = []
-        if os.path.exists(ann_path):
-            with open(ann_path, 'r') as f:
-                for line in f:
-                    class_id, x_center, y_center, w, h = map(float, line.strip().split())
-                    labels.append(int(class_id))
-                    boxes.append([x_center, y_center, w, h])  # normalized format
+```
+D:\PythonProjects\datasets\object_dataset
+├── images/          # .jpg image files
+│     ├── img1.jpg
+│     ├── img2.jpg
+│     └── ...
+└── annotations/     # .txt annotation files
+      ├── img1.txt   # lines: class_id x_center y_center width height (normalized)
+      ├── img2.txt
+      └── ...
 
-        # Convert to tensors
-        target = {}
-        target['boxes'] = torch.tensor(boxes, dtype=torch.float32)
-        target['labels'] = torch.tensor(labels, dtype=torch.long)
+object_detection.py  # Main script defining Dataset, DataLoader, model, and training loop
+README.md            # This file
+```
 
-        # Apply transforms
-        image = self.transforms(image)
+## 🔧 Requirements
 
-        return image, target
+* Python 3.8+
+* PyTorch 1.7+
+* torchvision 0.8+
+* PIL (Pillow)
 
+Install dependencies via pip:
 
-def collate_fn(batch):
-    images, targets = list(zip(*batch))
-    return list(images), list(targets)
+```bash
+pip install torch torchvision pillow
+```
 
+## ⚙️ Configuration
 
-def get_dataloader(images_dir,
-                   annotations_dir,
-                   batch_size=8,
-                   shuffle=True,
-                   num_workers=4):
-    """
-    Returns a DataLoader for the custom object detection dataset.
-    """
-    dataset = CustomObjectDetectionDataset(images_dir, annotations_dir,
-                                           transforms=T.Compose([T.ToTensor()]))
-    loader = DataLoader(dataset,
-                        batch_size=batch_size,
-                        shuffle=shuffle,
-                        num_workers=num_workers,
-                        collate_fn=collate_fn)
-    return loader
+* **COCO Dataset path**: Update the paths in `object_detection.py`:
 
-""" # Example usage:
-images_dir = '/path/to/images'
-annotations_dir = '/path/to/annotations'
-loader = get_dataloader(images_dir, annotations_dir, batch_size=4)
-for imgs, targets in loader:
-    imgs: list of tensors [3, H, W]
-    targets: list of dicts with 'boxes' and 'labels'
-    pass"""
+  ```python
+  images_dir = r"D:\PythonProjects\datasets\object_dataset\images"
+  annotations_dir = r"D:\PythonProjects\datasets\object_dataset\annotations"
+  ```
+* **Number of classes**:
+  Set `num_classes` (including the background) in the `__main__` block.
 
+## ▶️ Usage
+
+1. Place your images (`.jpg`) in the `images/` folder and matching `.txt` files in `annotations/`.
+2. Ensure the annotation format: each line is `class_id x_center y_center width height`, all values normalized to \[0,1].
+3. Run training:
+
+   ```bash
+   python object_detection.py
+   ```
+4. Monitor the console for training losses.
+
+## 📈 Training Loop
+
+The script:
+
+* Instantiates a pretrained Faster R‑CNN with a ResNet-50 FPN backbone
+* Replaces the final box predictor for your `num_classes`
+* Uses an SGD optimizer (lr=0.005, momentum=0.9, weight\_decay=0.0005)
+* Performs one epoch over the dataset (extendable)
+
+You can customize:
+
+* Learning rate and optimizer in the `optimizer` section
+* Number of epochs by wrapping the training loop
+* Add validation, checkpointing, or learning-rate schedulers
+
+## 🛠️ Customization Tips
+
+* **Transforms**: Modify `transforms=T.Compose([...])` for data augmentation
+* **Backbone**: Swap `resnet50_fpn` for other detection backbones
+* **Batch Size & Workers**: Adjust `batch_size` and `num_workers` in `get_dataloader`
+
+---
+
+Happy Training! 🚀
